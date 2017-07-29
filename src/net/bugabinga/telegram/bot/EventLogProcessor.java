@@ -3,9 +3,13 @@
  */
 package net.bugabinga.telegram.bot;
 
+import static java.lang.System.lineSeparator;
 import static java.lang.Thread.currentThread;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Queue;
 
 import org.eclipse.jdt.annotation.Nullable;
@@ -13,7 +17,8 @@ import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.logging.BotLogger;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Oliver Jan Krylow <oliver@bugabinga.net>
@@ -29,24 +34,23 @@ public class EventLogProcessor implements Runnable {
   private static final long SLEEP_TIME = 1000;
 
   private final Queue<Update> eventLog;
-  private final File eventLogFile;
   private final ObjectMapper jsonMapper;
+  private final File eventLogFile;
 
   /**
    * @param eventLog A queue, that is filled by another thread with Telegram {@link Update}s.
    * @param eventLogFile The {@link File} on disk where events get written to.
+   * @param jsonMapper The JSON serializer.
    */
-  public EventLogProcessor(final Queue<Update> eventLog, final File eventLogFile) {
+  public EventLogProcessor(final Queue<Update> eventLog, final File eventLogFile,
+      final ObjectMapper jsonMapper) {
     this.eventLog = eventLog;
     this.eventLogFile = eventLogFile;
-    jsonMapper = new ObjectMapper();
+    this.jsonMapper = jsonMapper;
   }
 
   @Override
   public void run() {
-    currentThread().setPriority(Thread.MIN_PRIORITY);
-    currentThread().setName("Telegram Event Log Processor");
-
     while (currentThread().isAlive()) {
       @Nullable
       final Update update = eventLog.poll();
@@ -70,8 +74,16 @@ public class EventLogProcessor implements Runnable {
         continue;
       }
 
-      try {
-        jsonMapper.writeValue(eventLogFile, update);
+      /*
+       * Creating a new output stream in the loop is very wasteful, but the object mapper from
+       * jackson unfortunately closes the stream it writes to so we are forced to. FIXME(oliver):
+       * There is surely a workaround for this. jackson has many write methods...
+       */
+      try (final FileOutputStream fileOutputStream = new FileOutputStream(eventLogFile, true)) {
+        fileOutputStream.write(lineSeparator().getBytes(UTF_8));
+        // Warning! the writeValue method automatically closes the output stream, so do not touch it
+        // afterwards...
+        jsonMapper.writeValue(fileOutputStream, update);
       } catch (final JsonGenerationException exception) {
         BotLogger.warn(
             "The serializer failed during generation of output. This incident will be ignored. The following event will be lost : '"
@@ -85,10 +97,7 @@ public class EventLogProcessor implements Runnable {
         BotLogger.error(
             "The file where the events are supposed to be logged could either not be found or opened. This might be a permission issue or no disk space is left. Either way, it is game over for us, bye!",
             TAG, exception);
-        break;
       }
     }
-
   }
-
 }
