@@ -476,7 +476,7 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
    * @param args ignored for now.
    */
   public static void main(final String[] args) {
-    BotLogger.setLevel(Level.ALL);
+    BotLogger.setLevel(Level.INFO);
 
     ApiContextInitializer.init();
     BotLogger.info(SCOBO_BOT, "Initialized the API context, whatever that is...");
