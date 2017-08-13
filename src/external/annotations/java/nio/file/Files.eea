@@ -1,0 +1,7 @@
+class java/nio/file/Files
+lines
+ (Ljava/nio/file/Path;)Ljava/util/stream/Stream<Ljava/lang/String;>;
+ (Ljava/nio/file/Path;)L1java/util/stream/Stream<L1java/lang/String;>;
+lines
+ (Ljava/nio/file/Path;Ljava/nio/charset/Charset;)Ljava/util/stream/Stream<Ljava/lang/String;>;
+ (Ljava/nio/file/Path;Ljava/nio/charset/Charset;)Ljava/util/stream/Stream<L1java/lang/String;>;

@@ -464,7 +464,9 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
 
   @Override
   public String getBotToken() {
-    return "407074217:AAH-4zBmKeNlNH4lV448vy8OgnCs5ZsYvfc";
+    // FIXME(oliver): For now the Token just gets set via "-DTELEGRAM_API_TOKEN=..." on the command
+    // line. Not sure how to better handle this secret in the future.
+    return System.getProperty("TELEGRAM_API_TOKEN", "");
   }
 
   @Override

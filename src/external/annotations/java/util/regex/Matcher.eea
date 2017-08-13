@@ -1,0 +1,4 @@
+class java/util/regex/Matcher
+group
+ ()Ljava/lang/String;
+ ()L0java/lang/String;

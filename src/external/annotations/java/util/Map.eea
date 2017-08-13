@@ -1,0 +1,4 @@
+class java/util/Map
+computeIfPresent
+ (TK;Ljava/util/function/BiFunction<-TK;-TV;+TV;>;)TV;
+ (TK;Ljava/util/function/BiFunction<-TK;-TV;+T0V;>;)TV;

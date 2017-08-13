@@ -1,0 +1,73 @@
+	plugins {
+		id "java-library"
+		id "java"
+	id "eclipse"
+}
+
+description = "A Telegram Bot, that keeps a score board for people in a group chat."
+
+repositories {
+	jcenter()
+	}
+
+dependencies {
+	compileOnly "org.eclipse.jdt:org.eclipse.jdt.annotation:2.1.0"
+	compile "org.telegram:telegrambots:3.2" 
+}
+
+compileJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+}
+
+task wrapper(type: Wrapper){
+    gradleVersion = "4.1"
+}
+
+//We want the gradle build config to be the single source of truth.
+//Never depend on configurations done in an IDE.
+tasks.eclipse.dependsOn(cleanEclipse)
+
+eclipse {
+	project {
+        comment 'An image editor.'
+  	// the buildship plugin in eclipse is very aggresive about rewriting the .classpath and .project files.
+  	// we are better of not using the plugin for now
+        natures.remove('org.eclipse.buildship.core.gradleprojectnature')
+        buildCommands.remove('org.eclipse.buildship.core.gradleprojectbuilder')
+	}
+}
+
+import org.gradle.plugins.ide.eclipse.model.AccessRule
+eclipse.classpath {
+	file.whenMerged {
+        	entries.each { source -> 
+                def jre = entries.find { it.path.contains 'org.eclipse.jdt.launching.JRE_CONTAINER' }
+
+		//Example of what we try to achieve here
+		//<accessrules>
+		//	<accessrule kind="accessible" pattern="javafx/**"/>
+		//</accessrules>
+		
+		// '0' = accessible
+		// '1' = nonaccessible
+		// '2' = discouraged
+
+                jre.accessRules.add(new AccessRule("nonaccessible", 'sun/**'))
+               	jre.accessRules.add(new AccessRule("nonaccessible", 'javax/swing/**'))
+               	jre.accessRules.add(new AccessRule("nonaccessible", 'com/sun/**'))
+               	jre.accessRules.add(new AccessRule("accessible", 'javafx/**'))
+
+                //We need to tell eclipse about the external annotations location
+                //<attributes>
+                //    <attribute name="annotationpath" value="src/external/annotations"/>
+                //</attributes>
+ 
+		jre.entryAttributes.put("annotationpath","src/external/annotations")
+        }
+     }
+        defaultOutputDir = file('build/eclipse-bin')
+
+        downloadSources = true
+        downloadJavadoc = false
+	}
