@@ -145,7 +145,7 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
       final SendMessage fail = new SendMessage(update.getMessage().getChatId(),
           "final Oh crap! final I failed to do that final command. Please sorry and very try again!");
       try {
-        sendMessage(fail);
+        execute(fail);
       } catch (final TelegramApiException exception) {
         BotLogger.error("Failed to send message '" + fail + "' to the people.", SCOBO_BOT,
             exception);
@@ -204,7 +204,7 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
 
       default:
         BotLogger.info(SCOBO_BOT, "We have received an unknown command: " + text);
-        sendMessage(new SendMessage(chatId,
+        execute(new SendMessage(chatId,
             "Dude, I don´t know what to do with that. Try again douchbag!"));
         break;
     }
@@ -212,13 +212,13 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
 
   private void processWonCommand(final Long chatId, final String username)
       throws TelegramApiException {
-    sendMessage(new SendMessage(chatId, pickRandom(SUCCESS_EMOJIS) + ' ' + pickRandom(CONGRATZ_TEXT)
+    execute(new SendMessage(chatId, pickRandom(SUCCESS_EMOJIS) + ' ' + pickRandom(CONGRATZ_TEXT)
         + ", " + username + "! +1 pointz."));
   }
 
   private void processUndoCommand(final Long chatId) throws TelegramApiException, IOException {
     // since there is some file IO involved, let people know this might take a while...
-    sendChatAction(new SendChatAction(chatId, TYPING.toString()));
+    execute(new SendChatAction(chatId, TYPING.toString()));
 
     try (final ReversedLinesFileReader reversedLinesFileReader =
         new ReversedLinesFileReader(eventLogPath.toFile(), StandardCharsets.UTF_8)) {
@@ -288,19 +288,19 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
       }
 
       if (username == null) {
-        sendMessage(new SendMessage(chatId, "There is nothing to undo yet, fool!"));
+        execute(new SendMessage(chatId, "There is nothing to undo yet, fool!"));
       } else {
         final SendMessage message = new SendMessage(chatId,
             format("_yessir!_ the last score adjustment from *%s* will be undone!", username));
         message.enableMarkdown(true);
-        sendMessage(message);
+        execute(message);
       }
     }
   }
 
   private void processBoardCommand(final Long chatId) throws TelegramApiException, IOException {
     // since there is some file IO involved, let people know this might take a while...
-    sendChatAction(new SendChatAction(chatId, TYPING.toString()));
+    execute(new SendChatAction(chatId, TYPING.toString()));
 
     final Map<String, Integer> scores = new HashMap<>();
     Files.lines(eventLogPath, StandardCharsets.UTF_8).filter(line -> !line.isEmpty())
@@ -385,7 +385,7 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
     final SendMessage scoreBoardSimple = new SendMessage(chatId, scoreBoardSummary);
     scoreBoardSimple.enableMarkdown(true);
 
-    sendMessage(scoreBoardSimple);
+    execute(scoreBoardSimple);
   }
 
 
