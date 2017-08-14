@@ -87,17 +87,17 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
   /**
    * This command gets used by people that want to increase their score by 1.
    */
-  private static final String WON_COMMAND = "/won@" + SCOBO_BOT;
+  private static final String WON_COMMAND = "/won";
 
   /**
    * This command undoes the last command that altered the score.
    */
-  private static final String UNDO_COMMAND = "/undo@" + SCOBO_BOT;
+  private static final String UNDO_COMMAND = "/undo";
 
   /**
    * This command shows a table with the current scores for all people.
    */
-  private static final String BOARD_COMMAND = "/board@" + SCOBO_BOT;
+  private static final String BOARD_COMMAND = "/board";
 
 
   private final Queue<Update> eventLog;
@@ -188,25 +188,19 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
       return;
     }
 
-    switch (text) {
-      case WON_COMMAND:
-        final @Nullable String sendersName = extractSendersName(message.getFrom());
-        if (sendersName != null) {
-          processWonCommand(chatId, sendersName);
-        }
-        break;
-      case UNDO_COMMAND:
-        processUndoCommand(chatId);
-        break;
-      case BOARD_COMMAND:
-        processBoardCommand(chatId);
-        break;
-
-      default:
-        BotLogger.info(SCOBO_BOT, "We have received an unknown command: " + text);
-        execute(new SendMessage(chatId,
-            "Dude, I don´t know what to do with that. Try again douchbag!"));
-        break;
+    if (text.startsWith(WON_COMMAND)) {
+      final @Nullable String sendersName = extractSendersName(message.getFrom());
+      if (sendersName != null) {
+        processWonCommand(chatId, sendersName);
+      }
+    } else if (text.startsWith(UNDO_COMMAND)) {
+      processUndoCommand(chatId);
+    } else if (text.startsWith(BOARD_COMMAND)) {
+      processBoardCommand(chatId);
+    } else {
+      BotLogger.info(SCOBO_BOT, "We have received an unknown command: " + text);
+      execute(
+          new SendMessage(chatId, "Dude, I don´t know what to do with that. Try again douchbag!"));
     }
   }
 
@@ -234,7 +228,7 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
           continue;
         }
 
-        if (!line.contains(WON_COMMAND)) {
+        if (!line.startsWith(WON_COMMAND)) {
           BotLogger.debug(SCOBO_BOT,
               "Line of data in event log file does not even contain the won command. Stopping further processing.");
           continue;
@@ -278,7 +272,7 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
           continue;
         }
 
-        if (savedText.equals(WON_COMMAND)) {
+        if (savedText.startsWith(WON_COMMAND)) {
           final @Nullable String sendersName = extractSendersName(savedMessage.getFrom());
           if (sendersName != null) {
             username = sendersName;
@@ -363,9 +357,9 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
            * In the future, it is likely, that undo needs to be reimplemented depending on the types
            * of commands we add.
            */
-          if (text.equals(WON_COMMAND)) {
+          if (text.startsWith(WON_COMMAND)) {
             scores.merge(sendersName, ONE, adderOfIntegers);
-          } else if (text.equals(UNDO_COMMAND)) {
+          } else if (text.startsWith(UNDO_COMMAND)) {
             scores.computeIfPresent(sendersName, decrementOrRemoveIfSmallerThanZero);
           } else {
             BotLogger.debug(SCOBO_BOT,
@@ -464,9 +458,10 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
 
   @Override
   public String getBotToken() {
-    // FIXME(oliver): For now the Token just gets set via "-DTELEGRAM_API_TOKEN=..." on the command
-    // line. Not sure how to better handle this secret in the future.
-    return System.getProperty("TELEGRAM_API_TOKEN", "");
+    final String apiToken = System.getProperty("TELEGRAM_API_TOKEN");
+    requireNonNull(apiToken,
+        "You need to set a telegram api token as given to you by the Botfather! Use the command flag '-DTELEGRAM_API_TOKEN=...' to do that!");
+    return apiToken;
   }
 
   @Override
@@ -483,7 +478,6 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
     ApiContextInitializer.init();
     BotLogger.info(SCOBO_BOT, "Initialized the API context, whatever that is...");
 
-    // TODO use key store for TOKEN
     final TelegramBotsApi botsApi = new TelegramBotsApi();
     BotLogger.info(SCOBO_BOT, "Created the Telegram Bots Api!");
 
