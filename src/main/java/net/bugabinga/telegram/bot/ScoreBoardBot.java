@@ -458,9 +458,9 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
 
   @Override
   public String getBotToken() {
-    final String apiToken = System.getProperty("TELEGRAM_API_TOKEN");
+    final String apiToken = System.getenv("TELEGRAM_API_TOKEN");
     requireNonNull(apiToken,
-        "You need to set a telegram api token as given to you by the Botfather! Use the command flag '-DTELEGRAM_API_TOKEN=...' to do that!");
+        "You need to set a telegram api token as given to you by the Botfather! Set the environment variable 'TELEGRAM_API_TOKEN=...' to do that!");
     return apiToken;
   }
 
