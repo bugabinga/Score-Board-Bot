@@ -459,8 +459,17 @@ public class ScoreBoardBot extends TelegramLongPollingBot {
   @Override
   public String getBotToken() {
     final String apiToken = System.getenv("TELEGRAM_API_TOKEN");
-    requireNonNull(apiToken,
-        "You need to set a telegram api token as given to you by the Botfather! Set the environment variable 'TELEGRAM_API_TOKEN=...' to do that!");
+
+    final String panicMessage =
+        "You need to set a telegram api token as given to you by the Botfather! Set the environment variable 'TELEGRAM_API_TOKEN=...' to do that!";
+
+    if (apiToken == null) {
+      BotLogger.error(SCOBO_BOT, panicMessage);
+      // Crash horribly and die.
+      System.exit(-1);
+    }
+
+    requireNonNull(apiToken, panicMessage);
     return apiToken;
   }
 
