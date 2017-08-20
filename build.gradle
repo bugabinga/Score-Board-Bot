@@ -73,3 +73,8 @@ eclipse.classpath {
         downloadSources = true
         downloadJavadoc = false
 	}
+
+//This task builds a release for heroku. This should do everything necessary for a production release.
+task stage {
+  dependsOn installDist
+}
