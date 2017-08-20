@@ -7,6 +7,7 @@ plugins {
 
 description = "A Telegram Bot, that keeps a score board for people in a group chat."
 mainClassName = "net.bugabinga.telegram.bot.ScoreBoardBot"
+applicationName = "ScoreBoardBot"
 
 repositories {
 	jcenter()
